@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"github.com/spartan-projects/output-reader/export"
 	"io"
 	"log"
 	"os"
@@ -16,6 +17,7 @@ func main() {
 
 	jobIdParam := getCmdParams()
 	jobIdFileName := fmt.Sprintf("%s.log", jobIdParam)
+	bucketKey := fmt.Sprintf("test-job-logs/%s", jobIdFileName)
 
 	namedPipeFile, err := os.OpenFile(namedPipeFile, os.O_RDONLY, os.ModeNamedPipe)
 	if err != nil {
@@ -24,7 +26,6 @@ func main() {
 
 	defer closeFile(namedPipeFile)
 
-	// TODO change output namedPipeFile name with job id - example ebf0001
 	fileOutput, err := os.OpenFile(jobIdFileName, os.O_CREATE | os.O_RDWR, 0666)
 	if err != nil {
 		panic(err)
@@ -33,6 +34,7 @@ func main() {
 	defer closeFile(fileOutput)
 
 	processPipe(namedPipeFile, fileOutput, nBytes, nChunks)
+	export.UploadFile(jobIdFileName, "vandv-common-store", bucketKey)
 }
 
 func getCmdParams() string{
