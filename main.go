@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"flag"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -12,6 +14,9 @@ var namedPipeFile = "/home/valkyrie/vxworks-images/workspace_io/vip_intel_test/c
 func main() {
 	nBytes, nChunks := int64(0), int64(0)
 
+	jobIdParam := getCmdParams()
+	jobIdFileName := fmt.Sprintf("%s.log", jobIdParam)
+
 	namedPipeFile, err := os.OpenFile(namedPipeFile, os.O_RDONLY, os.ModeNamedPipe)
 	if err != nil {
 		log.Fatal(err)
@@ -20,7 +25,7 @@ func main() {
 	defer closeFile(namedPipeFile)
 
 	// TODO change output namedPipeFile name with job id - example ebf0001
-	fileOutput, err := os.OpenFile("ebf0001.log", os.O_CREATE | os.O_RDWR, 0666)
+	fileOutput, err := os.OpenFile(jobIdFileName, os.O_CREATE | os.O_RDWR, 0666)
 	if err != nil {
 		panic(err)
 	}
@@ -30,8 +35,18 @@ func main() {
 	processPipe(namedPipeFile, fileOutput, nBytes, nChunks)
 }
 
-func getCmdParams() {
-	// TODO get job id as cli parameter
+func getCmdParams() string{
+	var jobId string
+
+	if len(jobId) > 0 {
+		flag.StringVar(&jobId, "job", "", "Test job id")
+	} else {
+		flag.StringVar(&jobId, "job", "ebf0001", "Test job id")
+	}
+
+	flag.Parse()
+
+	return jobId
 }
 
 func processPipe(namedPipe *os.File, outputFile *os.File, nBytes int64, nChunks int64) {
