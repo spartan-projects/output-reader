@@ -11,25 +11,31 @@ var namedPipeFile = "/home/valkyrie/vxworks-images/workspace_io/vip_intel_test/c
 
 func main() {
 	nBytes, nChunks := int64(0), int64(0)
-	file, err := os.OpenFile(namedPipeFile, os.O_RDONLY, os.ModeNamedPipe)
-	defer file.Close()
+
+	namedPipeFile, err := os.OpenFile(namedPipeFile, os.O_RDONLY, os.ModeNamedPipe)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// TODO change output file name with job id - example ebf0001
-	fo, err := os.OpenFile("ebf0001.log", os.O_CREATE | os.O_RDWR, 0666)
+	defer closeFile(namedPipeFile)
+
+	// TODO change output namedPipeFile name with job id - example ebf0001
+	fileOutput, err := os.OpenFile("ebf0001.log", os.O_CREATE | os.O_RDWR, 0666)
 	if err != nil {
 		panic(err)
 	}
 
-	defer func() {
-		if err := fo.Close(); err != nil {
-			panic(err)
-		}
-	}()
+	defer closeFile(fileOutput)
 
-	r := bufio.NewReader(file)
+	processPipe(namedPipeFile, fileOutput, nBytes, nChunks)
+}
+
+func getCmdParams() {
+	// TODO get job id as cli parameter
+}
+
+func processPipe(namedPipe *os.File, outputFile *os.File, nBytes int64, nChunks int64) {
+	r := bufio.NewReader(namedPipe)
 	buf := make([]byte, 0, 6 * 1024)
 	for {
 		n, err := r.Read(buf[:cap(buf)])
@@ -45,8 +51,8 @@ func main() {
 		}
 		nChunks++
 		nBytes += int64(len(buf))
-		// process buf
-		if _, err := fo.Write(buf[:n]); err != nil {
+
+		if _, err := outputFile.Write(buf[:n]); err != nil {
 			panic(err)
 		}
 
@@ -55,4 +61,10 @@ func main() {
 		}
 	}
 	log.Println("Bytes:", nBytes, "Chunks:", nChunks)
+}
+
+func closeFile(fileToClose *os.File) {
+	if err := fileToClose.Close(); err != nil {
+		panic(err)
+	}
 }
