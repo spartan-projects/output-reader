@@ -19,7 +19,7 @@ func UploadFile(fileName string, bucketName string, bucketKey string) {
 	f, err := os.OpenFile(fileName, os.O_RDONLY, 0662)
 	defer f.Close()
 	if err != nil {
-		log.Panicln(err)
+		log.Fatal(err)
 	}
 
 	result, err := uploader.Upload(&s3manager.UploadInput{
@@ -29,7 +29,7 @@ func UploadFile(fileName string, bucketName string, bucketKey string) {
 	})
 
 	if err != nil {
-		log.Panicln(err)
+		log.Fatal(err)
 	}
 
 	log.Printf("File uploaded to, %s\n", aws.StringValue(&result.Location))
