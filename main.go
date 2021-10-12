@@ -4,18 +4,22 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"github.com/spartan-projects/output-reader/export"
 	"io"
 	"log"
 	"os"
 )
 
-var namedPipeFile = "/home/valkyrie/vxworks-images/workspace_io/vip_intel_test/comms/input.out"
+var namedPipeFile = "/vxworks/comms/input.out"
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.Println("###### Starting Output Reader Script ######")
 	nBytes, nChunks := int64(0), int64(0)
 
 	jobIdParam := getCmdParams()
 	jobIdFileName := fmt.Sprintf("%s.log", jobIdParam)
+	bucketKey := fmt.Sprintf("test-job-logs/%s", jobIdFileName)
 
 	namedPipeFile, err := os.OpenFile(namedPipeFile, os.O_RDONLY, os.ModeNamedPipe)
 	if err != nil {
@@ -24,15 +28,18 @@ func main() {
 
 	defer closeFile(namedPipeFile)
 
-	// TODO change output namedPipeFile name with job id - example ebf0001
 	fileOutput, err := os.OpenFile(jobIdFileName, os.O_CREATE | os.O_RDWR, 0666)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	defer closeFile(fileOutput)
 
+	log.Println("###### Processing Named Pipe Output ######")
 	processPipe(namedPipeFile, fileOutput, nBytes, nChunks)
+
+	log.Println("###### Uploading File to S3 ######")
+	export.UploadFile(jobIdFileName, "vandv-common-store", bucketKey)
 }
 
 func getCmdParams() string{
@@ -52,6 +59,8 @@ func getCmdParams() string{
 func processPipe(namedPipe *os.File, outputFile *os.File, nBytes int64, nChunks int64) {
 	r := bufio.NewReader(namedPipe)
 	buf := make([]byte, 0, 6 * 1024)
+	log.Println("###### Processing output file ######")
+
 	for {
 		n, err := r.Read(buf[:cap(buf)])
 		buf = buf[:n]
@@ -68,7 +77,7 @@ func processPipe(namedPipe *os.File, outputFile *os.File, nBytes int64, nChunks 
 		nBytes += int64(len(buf))
 
 		if _, err := outputFile.Write(buf[:n]); err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 
 		if err != nil && err != io.EOF {
@@ -79,7 +88,9 @@ func processPipe(namedPipe *os.File, outputFile *os.File, nBytes int64, nChunks 
 }
 
 func closeFile(fileToClose *os.File) {
+	log.Printf("###### Closing file %s ######", fileToClose.Name())
+
 	if err := fileToClose.Close(); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }

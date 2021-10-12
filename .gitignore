@@ -281,3 +281,4 @@ $RECYCLE.BIN/
 # vendor/
 
 !/go.mod
+!/export/
