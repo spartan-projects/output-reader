@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/spartan-projects/output-reader/export"
+	"github.com/spartan-projects/output-reader/filter"
 	"io"
 	"log"
 	"os"
@@ -37,6 +38,9 @@ func main() {
 
 	log.Println("###### Processing Named Pipe Output ######")
 	processPipe(namedPipeFile, fileOutput, nBytes, nChunks)
+
+	log.Println("###### Filter FileOutput Content ######")
+	filter.FileOutputFilter(jobIdFileName)
 
 	log.Println("###### Uploading File to S3 ######")
 	export.UploadFile(jobIdFileName, "vandv-common-store", bucketKey)
