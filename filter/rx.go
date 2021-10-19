@@ -17,10 +17,11 @@ func FileOutputFilter(jobIdFileName string) {
 		log.Panic(err.Error())
 	}
 
-	matches := r.FindAllString(string(file), -1)
+	fileContent := string(file)
 
-	for _, match := range matches {
-		fmt.Printf("##### MATCH FOUND #####\n %s", match)
-		ioutil.WriteFile(jobIdFileName, []byte(match) , 0666)
+	if r.MatchString(fileContent) {
+		findString := r.FindString(fileContent)
+		fmt.Printf("##### MATCH FOUND #####\n %s", findString)
+		ioutil.WriteFile(jobIdFileName, []byte(findString) , 0666)
 	}
 }
