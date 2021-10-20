@@ -5,10 +5,11 @@ import (
 	"io/ioutil"
 	"log"
 	"regexp"
+	"strings"
 )
 
 var regexPattern = `(?s)(vxTest\sOptions\sSummary).*?(Test\sexecution\sfinished)`
-var eofPattern = `(?m)^Au\srevoir\!$`
+var eofPattern = "revoir"
 
 func FileOutputFilter(jobIdFileName string) {
 	r := regexp.MustCompile(regexPattern)
@@ -27,21 +28,13 @@ func FileOutputFilter(jobIdFileName string) {
 	}
 }
 
-func EofFilter(jobIdFileName string) {
-	r := regexp.MustCompile(eofPattern)
+func EofFilter(content string) bool{
+	var found = false
 
-	file, err := ioutil.ReadFile(jobIdFileName)
-	if err != nil {
-		log.Panic(err.Error())
+	if strings.Contains(content, eofPattern) {
+		log.Println("###### EOF Filter Matches!!! ######")
+		found = true
 	}
 
-	fileContent := string(file)
-
-	if r.MatchString(fileContent) {
-		findString := r.FindString(fileContent)
-		log.Printf("##### EOF MATCH FOUND #####\n %s", findString)
-		log.Println("##### A TRUE BOOLEAN WILL BE RETURNED AT THIS POINT #####")
-	} else {
-		log.Printf("##### File Content #####\n%s", fileContent)
-	}
+	return found
 }

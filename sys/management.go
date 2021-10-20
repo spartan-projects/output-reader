@@ -7,6 +7,7 @@ import (
 )
 
 func KillProcess(pid int) {
+	log.Printf("##### Killing process with id: %d #####", pid)
 	process, err := os.FindProcess(pid)
 	if err != nil {
 		log.Fatal(err.Error())
