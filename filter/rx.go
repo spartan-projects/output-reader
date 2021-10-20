@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var regexPattern = `(?s)(vxTest\sOptions\sSummary).*?(Test\sexecution\sfinished)`
+var regexPattern = `(?s)((vxTest|Test)\sOptions\sSummary).*?(Test\sexecution\sfinished)`
 var eofPattern = "revoir"
 
 func FileOutputFilter(jobIdFileName string) {
