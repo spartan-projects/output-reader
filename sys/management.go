@@ -1,6 +1,7 @@
 package sys
 
 import (
+	"github.com/spartan-projects/output-reader/common"
 	"log"
 	"os"
 	"syscall"
@@ -13,5 +14,5 @@ func KillProcess(pid int) {
 		log.Fatal(err.Error())
 	}
 
-	err = process.Signal(syscall.Signal(15))
+	err = process.Signal(syscall.Signal(common.SysKillSignal))
 }

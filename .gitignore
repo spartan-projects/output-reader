@@ -284,3 +284,4 @@ $RECYCLE.BIN/
 !/export/
 !/filter/
 !/sys/
+!/common/constants.go

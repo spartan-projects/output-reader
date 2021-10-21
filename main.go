@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"github.com/spartan-projects/output-reader/common"
 	"github.com/spartan-projects/output-reader/export"
 	"github.com/spartan-projects/output-reader/filter"
 	"github.com/spartan-projects/output-reader/sys"
@@ -13,24 +14,22 @@ import (
 	"strings"
 )
 
-var namedPipeFile = "/vxworks/comms/input.out"
-
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("###### Starting Output Reader Script ######")
 
 	jobIdParam, pid := getCmdParams()
 	jobIdFileName := fmt.Sprintf("%s.log", jobIdParam)
-	bucketKey := fmt.Sprintf("test-job-logs/%s", jobIdFileName)
+	bucketKey := fmt.Sprintf("%s/%s", common.BucketOutputFolder, jobIdFileName)
 
-	namedPipeFile, err := os.OpenFile(namedPipeFile, os.O_RDONLY, os.ModeNamedPipe)
+	namedPipeFile, err := os.OpenFile(common.PipeFileName, os.O_RDONLY, os.ModeNamedPipe)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer closeFile(namedPipeFile)
 
-	fileOutput, err := os.OpenFile(jobIdFileName, os.O_CREATE | os.O_RDWR, 0666)
+	fileOutput, err := os.OpenFile(jobIdFileName, os.O_CREATE | os.O_RDWR, common.FilePermissions)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,15 +43,15 @@ func main() {
 	filter.FileOutputFilter(jobIdFileName)
 
 	log.Println("###### Uploading File to S3 ######")
-	export.UploadFile(jobIdFileName, "vandv-common-store", bucketKey)
+	export.UploadFile(jobIdFileName, common.BucketOutputName, bucketKey)
 }
 
 func getCmdParams() (string, int){
 	var jobId string
 	var pid int
 
-	flag.StringVar(&jobId, "job", "ebf0001", "Test job id")
-	flag.IntVar(&pid, "process", 0, "Qemu process id")
+	flag.StringVar(&jobId, "job", common.JobParamDefaultValue, "Test job id")
+	flag.IntVar(&pid, "process", common.PidParamDefaultValue, "Qemu process id")
 
 	flag.Parse()
 
@@ -97,7 +96,7 @@ func writeBuffer(outputFile *os.File, buf []byte, n int) {
 }
 
 func closeInputPipe(strBuff []string, pid int) {
-	ct := strings.Join(strBuff, "")
+	ct := strings.Join(strBuff, common.ClosePipeFileSeparator)
 
 	if filter.EofFilter(ct) {
 		sys.KillProcess(pid)
