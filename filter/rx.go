@@ -5,9 +5,11 @@ import (
 	"io/ioutil"
 	"log"
 	"regexp"
+	"strings"
 )
 
-var regexPattern = `(?s)(vxTest\sOptions\sSummary).*?(Test\sexecution\sfinished)`
+var regexPattern = `(?s)((vxTest|Test)\sOptions\sSummary).*?(Test\sexecution\sfinished)`
+var eofPattern = "revoir"
 
 func FileOutputFilter(jobIdFileName string) {
 	r := regexp.MustCompile(regexPattern)
@@ -24,4 +26,15 @@ func FileOutputFilter(jobIdFileName string) {
 		fmt.Printf("##### MATCH FOUND #####\n %s", findString)
 		ioutil.WriteFile(jobIdFileName, []byte(findString) , 0666)
 	}
+}
+
+func EofFilter(content string) bool{
+	var found = false
+
+	if strings.Contains(content, eofPattern) {
+		log.Println("###### EOF Filter Matches!!! ######")
+		found = true
+	}
+
+	return found
 }
