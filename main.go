@@ -20,7 +20,7 @@ func main() {
 
 	jobIdParam, pid := getCmdParams()
 	jobIdFileName := fmt.Sprintf("%s.log", jobIdParam)
-	bucketKey := fmt.Sprintf("test-job-logs/%s", jobIdFileName)
+	bucketKey := fmt.Sprintf("%s/%s", common.BucketOutputFolder, jobIdFileName)
 
 	namedPipeFile, err := os.OpenFile(common.PipeFileName, os.O_RDONLY, os.ModeNamedPipe)
 	if err != nil {
