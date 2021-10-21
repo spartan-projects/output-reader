@@ -2,17 +2,15 @@ package filter
 
 import (
 	"fmt"
+	"github.com/spartan-projects/output-reader/common"
 	"io/ioutil"
 	"log"
 	"regexp"
 	"strings"
 )
 
-var regexPattern = `(?s)((vxTest|Test)\sOptions\sSummary).*?(Test\sexecution\sfinished)`
-var eofPattern = "revoir"
-
 func FileOutputFilter(jobIdFileName string) {
-	r := regexp.MustCompile(regexPattern)
+	r := regexp.MustCompile(common.OutputFilterRegex)
 
 	file, err := ioutil.ReadFile(jobIdFileName)
 	if err != nil {
@@ -24,14 +22,14 @@ func FileOutputFilter(jobIdFileName string) {
 	if r.MatchString(fileContent) {
 		findString := r.FindString(fileContent)
 		fmt.Printf("##### MATCH FOUND #####\n %s", findString)
-		ioutil.WriteFile(jobIdFileName, []byte(findString) , 0666)
+		ioutil.WriteFile(jobIdFileName, []byte(findString) , common.FilePermissions)
 	}
 }
 
 func EofFilter(content string) bool{
 	var found = false
 
-	if strings.Contains(content, eofPattern) {
+	if strings.Contains(content, common.EofFilter) {
 		log.Println("###### EOF Filter Matches!!! ######")
 		found = true
 	}
