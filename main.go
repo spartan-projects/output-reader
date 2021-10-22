@@ -40,7 +40,7 @@ func main() {
 	processPipe(namedPipeFile, fileOutput, pid)
 
 	log.Println("###### Filter FileOutput Content ######")
-	filter.FileOutputFilter(jobIdFileName)
+	filterOutputFile(jobIdFileName)
 
 	log.Println("###### Uploading File to S3 ######")
 	export.UploadFile(jobIdFileName, common.BucketOutputName, bucketKey)
@@ -92,6 +92,16 @@ func processPipe(namedPipe *os.File, outputFile *os.File, pid int) {
 func writeBuffer(outputFile *os.File, buf []byte, n int) {
 	if _, err := outputFile.Write(buf[:n]); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func filterOutputFile(jobIdFileName string) {
+	ct := sys.ReadFile(jobIdFileName)
+
+	if ok, stringFilter := filter.FileOutputFilter(ct); ok {
+		sys.WriteFile(jobIdFileName, stringFilter)
+	} else {
+		log.Println("##### ERROR: File content cannot be filtered #####")
 	}
 }
 
