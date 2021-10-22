@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"github.com/spartan-projects/output-reader/common"
 	"github.com/spartan-projects/output-reader/export"
@@ -18,7 +17,7 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("###### Starting Output Reader Script ######")
 
-	jobIdParam, pid := getCmdParams()
+	jobIdParam, pid := sys.GetCmdParams()
 	jobIdFileName := fmt.Sprintf("%s.log", jobIdParam)
 	bucketKey := fmt.Sprintf("%s/%s", common.BucketOutputFolder, jobIdFileName)
 
@@ -44,18 +43,6 @@ func main() {
 
 	log.Println("###### Uploading File to S3 ######")
 	export.UploadFile(jobIdFileName, common.BucketOutputName, bucketKey)
-}
-
-func getCmdParams() (string, int){
-	var jobId string
-	var pid int
-
-	flag.StringVar(&jobId, "job", common.JobParamDefaultValue, "Test job id")
-	flag.IntVar(&pid, "process", common.PidParamDefaultValue, "Qemu process id")
-
-	flag.Parse()
-
-	return jobId, pid
 }
 
 func processPipe(namedPipe *os.File, outputFile *os.File, pid int) {

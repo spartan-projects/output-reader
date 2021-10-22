@@ -1,6 +1,7 @@
 package sys
 
 import (
+	"flag"
 	"github.com/spartan-projects/output-reader/common"
 	"log"
 	"os"
@@ -15,4 +16,16 @@ func KillProcess(pid int) {
 	}
 
 	err = process.Signal(syscall.Signal(common.SysKillSignal))
+}
+
+func GetCmdParams() (string, int) {
+	var jobId string
+	var pid int
+
+	flag.StringVar(&jobId, "job", common.JobParamDefaultValue, "Test job id")
+	flag.IntVar(&pid, "process", common.PidParamDefaultValue, "Qemu process id")
+
+	flag.Parse()
+
+	return jobId, pid
 }
